@@ -1,5 +1,3 @@
-from cProfile import label
-
 import requests
 import re
 import json
@@ -18,9 +16,10 @@ def check_balance(login, password):
 
         if response.status_code == 200:
             response_data = response.json()
+            mb.showinfo("Баланс", f"Баланс счета {response_data["money"]}")
             return response_data["money"]
         else:
-            mb.showerror("Ошибка!",(f"Произошла ошибка проверки баланса{response.status_code}")
+            mb.showerror("Ошибка!", f"Произошла ошибка проверки баланса{response.status_code}")
             return None
     except Exception as e:
         mb.showerror("Ошибка!",f"Произошла ошибка при проверке баланса{e}")
@@ -35,8 +34,12 @@ def send_sms():
     password = 'TCMS9L'
     sender = 'python2024'
     receiver = receiver_entry.get()
-    text = text_entry.get()
+    text = text_entry.get(1.0, END)
 
+
+    if len(text) > 160:
+        mb.showerror("Ошибка!", f"Длина вашего сообщения {len(text)}. Она не может превышать 160 символов.")
+        return
     balance = check_balance(user, password)
     if balance:
         if float (balance) > 10:
@@ -44,7 +47,7 @@ def send_sms():
             if not validate_phone_number(receiver):
                 mb.showinfo("Ошибка!", "Некорректный номер телефона")
             else:
-                url = f"http://my3.webcom.mob/sendsms.php?user={user}&pwd={password}&sadr={sender}&dadr={receiver}&text={text}"
+                url = f"http://my3.webcom.mobi/sendsms.php?user={user}&pwd={password}&sadr={sender}&dadr={receiver}&text={text}"
 
                 try:
                    response = requests.get(url)
@@ -62,14 +65,14 @@ def send_sms():
 
 window = Tk()
 window.title("Отправка СМС")
-window.geometry("250x110")
+window.geometry("400x200")
 
-label(text="Номер получателя: ").pack()
+Label(text="Номер получателя в формате 79*********: ").pack()
 receiver_entry = Entry()
 receiver_entry.pack()
 
-label(text="Введите текст СМС").pack()
-text_entry = Entry()
+Label(text="Введите текст СМС").pack()
+text_entry = Text(height=6, width=30)
 text_entry.pack()
 
 send_button = Button(text="Отправить СМС", command=send_sms)
